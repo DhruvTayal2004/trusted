@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TrustedAEO® — Case Studies</title>
+<link rel="icon" type="image/png" href="trustedaeo-logo.png" />
+<link rel="apple-touch-icon" href="trustedaeo-logo.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" />
+
+<style>
+  :root {
+    --bg-0: #07080b;
+    --bg-1: #0a0c11;
+    --bg-2: #11141b;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --text: #eef0f4;
+    --text-soft: #c6cbd4;
+    --text-muted: #8b919c;
+    --text-dim: #5d6470;
+    --glass: rgba(255, 255, 255, 0.04);
+    --glass-strong: rgba(255, 255, 255, 0.07);
+    --serif: "Instrument Serif", "Times New Roman", serif;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --maxw: 1240px;
+    --pad: clamp(24px, 4vw, 64px);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg-0);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  ::selection { background: rgba(220, 235, 255, 0.25); }
+
+  /* Atmospheric layers (no canvas animation on this page) */
+  .bg-stage {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(80% 60% at 20% 10%, rgba(40, 55, 90, 0.30) 0%, transparent 55%),
+      radial-gradient(70% 50% at 90% 90%, rgba(65, 50, 80, 0.22) 0%, transparent 60%),
+      radial-gradient(120% 80% at 50% 50%, #11141b 0%, #0a0c11 45%, #06070a 80%, #04050700 100%);
+  }
+  .bg-grain {
+    position: fixed; inset: -5%; z-index: 2; pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: overlay; opacity: 0.42;
+  }
+  .page { position: relative; z-index: 3; }
+  .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--pad); }
+
+  /* Nav */
+  .nav {
+    position: fixed; top: 18px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    width: min(1180px, calc(100vw - 32px));
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px 12px 22px;
+    background: rgba(12, 14, 18, 0.55);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-radius: 999px;
+    transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+  }
+  .nav.scrolled { background: rgba(8, 10, 14, 0.78); box-shadow: 0 14px 40px -18px rgba(0,0,0,0.6); }
+  .nav__logo {
+    font-family: var(--serif);
+    font-size: 19px;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    display: inline-flex; align-items: center; gap: 10px;
+    text-decoration: none;
+  }
+  .nav__logo-mark {
+    width: 26px; height: 26px; display: block; flex: 0 0 26px;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35));
+    transition: transform 0.4s cubic-bezier(.2,.7,.2,1);
+  }
+  .nav__logo:hover .nav__logo-mark { transform: rotate(-6deg) scale(1.05); }
+  .nav__logo-text { display: inline-flex; align-items: baseline; gap: 4px; }
+  .nav__logo .reg {
+    font-family: var(--sans); font-size: 9px;
+    color: var(--text-muted); transform: translateY(-6px);
+  }
+  .nav__links { display: flex; gap: 28px; align-items: center; }
+  .nav__links a {
+    color: var(--text-soft); text-decoration: none;
+    font-size: 13.5px; letter-spacing: 0.01em;
+    transition: color 0.25s ease;
+  }
+  .nav__links a:hover { color: var(--text); }
+  .nav__links a.is-active { color: var(--text); }
+  .nav__cta {
+    font-size: 13px; font-weight: 500;
+    padding: 10px 18px; border-radius: 999px;
+    color: #0b0d12;
+    background: linear-gradient(180deg, #f6f8fc 0%, #c8d0de 100%);
+    border: 1px solid rgba(255,255,255,0.4);
+    text-decoration: none;
+    box-shadow: 0 6px 24px -8px rgba(220, 235, 255, 0.25), inset 0 1px 0 rgba(255,255,255,0.7);
+    transition: transform 0.25s ease, filter 0.25s ease;
+  }
+  .nav__cta:hover { transform: translateY(-1px); filter: brightness(1.05); }
+  @media (max-width: 760px) { .nav__links { display: none; } }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 14px; font-weight: 500;
+    padding: 14px 22px; border-radius: 999px;
+    text-decoration: none; cursor: pointer;
+    border: 1px solid var(--line-strong);
+    background: var(--glass); color: var(--text);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    transition: transform 0.3s, background 0.3s, border-color 0.3s, box-shadow 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .btn::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0) 60%);
+    pointer-events: none;
+  }
+  .btn:hover {
+    transform: translateY(-1px);
+    background: var(--glass-strong);
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 12px 36px -14px rgba(180,200,230,0.25);
+  }
+  .btn--primary {
+    color: #0b0d12;
+    background: linear-gradient(180deg, #f6f8fc 0%, #c8d0de 100%);
+    border-color: rgba(255,255,255,0.45);
+    box-shadow: 0 8px 28px -10px rgba(220,235,255,0.25), inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .btn--primary::before { display: none; }
+  .btn--primary:hover { filter: brightness(1.05); }
+  .btn .arr { font-weight: 300; transition: transform 0.3s ease; }
+  .btn:hover .arr { transform: translateX(3px); }
+
+  /* Typography */
+  h1, h2, h3, h4 { margin: 0; font-weight: 400; letter-spacing: -0.02em; }
+  .serif { font-family: var(--serif); }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 11.5px; font-weight: 500; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--line-strong); }
+
+  /* Page hero */
+  .page-hero {
+    padding: 170px 0 70px;
+    display: grid;
+    gap: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .page-hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(48px, 7vw, 104px);
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    text-wrap: balance;
+    max-width: 1080px;
+  }
+  .page-hero h1 em { font-style: italic; color: #d6def0; }
+  .page-hero p {
+    color: var(--text-soft);
+    font-size: clamp(15.5px, 1.4vw, 18px);
+    line-height: 1.55;
+    max-width: 680px;
+    text-wrap: pretty;
+  }
+  .page-hero__breadcrumb {
+    color: var(--text-muted);
+    font-size: 12.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .page-hero__breadcrumb a { color: var(--text-soft); text-decoration: none; }
+  .page-hero__breadcrumb a:hover { color: var(--text); }
+  .page-hero__breadcrumb .sep { margin: 0 12px; color: var(--text-dim); }
+
+  /* Section heading */
+  .section { padding: clamp(90px, 12vw, 140px) 0; }
+  .section__bar {
+    display: flex; align-items: baseline; gap: 22px;
+    flex-wrap: wrap;
+    margin-bottom: clamp(36px, 5vw, 56px);
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section__title {
+    font-family: var(--serif);
+    font-size: clamp(36px, 4.4vw, 64px);
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .section__title em { font-style: italic; color: #d6def0; }
+  .section__caption {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    letter-spacing: 0.04em;
+    max-width: 360px;
+    margin-left: auto;
+    text-align: right;
+  }
+  @media (max-width: 720px) {
+    .section__caption { text-align: left; margin-left: 0; }
+  }
+
+  /* Featured case (StepGenie) */
+  .featured {
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+    overflow: hidden;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .featured__head {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+  }
+  @media (max-width: 880px) { .featured__head { grid-template-columns: 1fr; } }
+  .featured__head > div { background: rgba(10, 12, 16, 0.45); padding: 36px 36px 38px; }
+  .featured__client {
+    font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .featured__name {
+    font-family: var(--serif);
+    font-size: clamp(36px, 4.4vw, 60px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .featured__desc {
+    color: var(--text-soft);
+    font-size: 15px; line-height: 1.6;
+    max-width: 460px;
+  }
+  .featured__meta { display: grid; gap: 18px; }
+  .featured__row {
+    display: flex; justify-content: space-between;
+    align-items: baseline; gap: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .featured__row:last-child { border-bottom: 0; padding-bottom: 0; }
+  .featured__row dt {
+    color: var(--text-dim);
+    font-size: 11.5px; letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .featured__row dd {
+    margin: 0; color: var(--text);
+    font-family: var(--serif); font-size: 19px;
+    text-align: right;
+  }
+
+  .featured__story {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+  }
+  @media (max-width: 1000px) { .featured__story { grid-template-columns: 1fr; } }
+  .featured__story > div { background: rgba(10, 12, 16, 0.45); padding: 30px 32px; }
+  .featured__story h4 {
+    font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+  .featured__story p {
+    color: var(--text-soft);
+    font-size: 14.5px; line-height: 1.6;
+    margin: 0; text-wrap: pretty;
+  }
+
+  .featured__metrics {
+    background: rgba(10, 12, 16, 0.45);
+    padding: 48px 36px 56px;
+    border-top: 1px solid var(--line);
+  }
+  .featured__metrics-label {
+    font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 36px;
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 36px 24px;
+  }
+  @media (max-width: 920px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .metrics-grid { grid-template-columns: 1fr; } }
+  .metric { display: grid; gap: 8px; }
+  .metric__value {
+    font-family: var(--serif);
+    font-size: clamp(42px, 5vw, 70px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+  .metric__value .unit { font-size: 0.45em; color: var(--text-soft); vertical-align: super; margin-left: 2px; letter-spacing: 0; }
+  .metric__label { color: var(--text-muted); font-size: 13px; line-height: 1.4; }
+  .metric__bar { height: 1px; background: var(--line); margin-top: 10px; position: relative; overflow: hidden; }
+  .metric__bar > i {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(220,235,255,0.7), rgba(220,235,255,0));
+    transform: translateX(-100%);
+    transition: transform 1.6s cubic-bezier(.2,.7,.2,1);
+  }
+  .metric.in-view .metric__bar > i { transform: translateX(0); }
+  .featured__followup {
+    background: rgba(10, 12, 16, 0.45);
+    padding: 28px 36px;
+    border-top: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 18px; flex-wrap: wrap;
+    font-size: 14px; color: var(--text-soft);
+  }
+  .featured__followup strong { color: var(--text); font-weight: 500; }
+
+  /* Disclosure */
+  .disclosure {
+    margin-top: 26px;
+    padding: 16px 20px;
+    border: 1px dashed rgba(220, 235, 255, 0.16);
+    border-radius: 14px;
+    color: var(--text-soft);
+    font-size: 13px;
+    line-height: 1.55;
+    max-width: 920px;
+    background: rgba(255,255,255,0.025);
+  }
+  .disclosure strong { color: var(--text); font-weight: 500; }
+
+  /* Blueprint cards grid */
+  .blueprints {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+  }
+  @media (max-width: 920px) { .blueprints { grid-template-columns: 1fr; } }
+  .bp {
+    position: relative;
+    display: grid;
+    gap: 22px;
+    padding: 30px 30px 28px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.012));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    overflow: hidden;
+    transition: border-color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
+  }
+  .bp::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0) 30%);
+    pointer-events: none;
+  }
+  .bp:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255,255,255,0.18);
+    box-shadow: 0 30px 80px -40px rgba(0,0,0,0.7);
+  }
+  .bp__tag {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    width: fit-content;
+  }
+  .bp__tag::before {
+    content: ""; width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(220,235,255,0.65);
+  }
+  .bp__title {
+    font-family: var(--serif);
+    font-size: clamp(26px, 2.8vw, 36px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-wrap: balance;
+  }
+  .bp__title em { font-style: italic; color: #d6def0; }
+  .bp__profile {
+    display: grid; gap: 10px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .bp__profile-row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 18px;
+    align-items: baseline;
+  }
+  @media (max-width: 540px) {
+    .bp__profile-row { grid-template-columns: 1fr; gap: 4px; }
+  }
+  .bp__profile-row dt {
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .bp__profile-row dd {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .bp__blocks {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: 1fr 1fr;
+  }
+  @media (max-width: 700px) { .bp__blocks { grid-template-columns: 1fr; } }
+  .bp__block h5 {
+    margin: 0 0 8px;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+  .bp__block p {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .bp__signals {
+    display: grid;
+    gap: 10px;
+  }
+  .bp__signal {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: baseline;
+  }
+  .bp__signal:last-child { border-bottom: 0; }
+  .bp__signal-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    flex: 1 1 auto;
+  }
+  .bp__signal-value {
+    font-family: var(--serif);
+    color: var(--text);
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .bp__footer {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; padding-top: 2px;
+    color: var(--text-dim); font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+  }
+
+  /* CTA */
+  .closer {
+    padding: clamp(100px, 14vw, 160px) 0 clamp(40px, 6vw, 80px);
+    text-align: center;
+    border-top: 1px solid var(--line);
+  }
+  .closer h2 {
+    font-family: var(--serif);
+    font-size: clamp(38px, 5vw, 72px);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    max-width: 900px;
+    margin: 0 auto;
+    text-wrap: balance;
+  }
+  .closer h2 em { font-style: italic; color: #d6def0; }
+  .closer p {
+    color: var(--text-muted);
+    max-width: 540px;
+    margin: 20px auto 32px;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .closer__cta {
+    display: inline-flex; gap: 12px;
+    justify-content: center; flex-wrap: wrap;
+  }
+
+  .footer {
+    border-top: 1px solid var(--line);
+    padding: 40px 0 60px;
+    color: var(--text-muted);
+    font-size: 12.5px;
+  }
+  .footer__row {
+    display: flex; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap;
+    align-items: baseline;
+  }
+  .footer__links { display: flex; gap: 22px; }
+  .footer__links a { color: var(--text-soft); text-decoration: none; }
+  .footer__links a:hover { color: var(--text); }
+  .footer__copy { color: var(--text-dim); }
+
+  /* Reveal */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 1s cubic-bezier(.2,.7,.2,1), transform 1s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in-view { opacity: 1; transform: none; }
+  .reveal-stagger > * { opacity: 0; transform: translateY(18px); transition: opacity 0.9s cubic-bezier(.2,.7,.2,1), transform 0.9s cubic-bezier(.2,.7,.2,1); }
+  .reveal-stagger.in-view > * { opacity: 1; transform: none; }
+  .reveal-stagger.in-view > *:nth-child(1) { transition-delay: 0.00s; }
+  .reveal-stagger.in-view > *:nth-child(2) { transition-delay: 0.08s; }
+  .reveal-stagger.in-view > *:nth-child(3) { transition-delay: 0.16s; }
+  .reveal-stagger.in-view > *:nth-child(4) { transition-delay: 0.24s; }
+  .reveal-stagger.in-view > *:nth-child(5) { transition-delay: 0.32s; }
+  .reveal-stagger.in-view > *:nth-child(6) { transition-delay: 0.40s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal-stagger > * { opacity: 1 !important; transform: none !important; transition: none !important; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="bg-stage" aria-hidden="true"></div>
+<div class="bg-grain" aria-hidden="true"></div>
+
+<nav class="nav" id="nav">
+  <a href="index.html" class="nav__logo">
+    <img src="trustedaeo-logo.png" alt="" class="nav__logo-mark" />
+    <span class="nav__logo-text">TrustedAEO<span class="reg">®</span></span>
+  </a>
+  <div class="nav__links">
+    <a href="Case Studies.html" class="is-active">Case Study</a>
+    <a href="index.html#services">Services</a>
+    <a href="index.html#philosophy">Philosophy</a>
+    <a href="index.html#contact">Contact</a>
+  </div>
+  <a href="index.html#book" class="nav__cta">Book Discovery Call</a>
+</nav>
+
+<main class="page">
+
+  <!-- Page hero -->
+  <section class="page-hero wrap">
+    <div class="page-hero__breadcrumb">
+      <a href="index.html">TrustedAEO®</a>
+      <span class="sep">/</span>
+      <span>Case Studies</span>
+    </div>
+    <h1>Proof in <em>plain view</em>.</h1>
+    <p>One named engagement, and a set of Engagement Blueprints — illustrative scenarios drawn from the Trust Layer™ framework. Together they show how we think, what we'd build, and what to expect when we run a 30–60 day trust infrastructure rebuild.</p>
+  </section>
+
+  <!-- Featured: StepGenie -->
+  <section class="section">
+    <div class="wrap">
+      <header class="section__bar reveal-stagger">
+        <h2 class="section__title">Featured <em>engagement</em></h2>
+        <div class="section__caption">Named client · live & ongoing</div>
+      </header>
+
+      <article class="featured reveal">
+        <div class="featured__head">
+          <div>
+            <div class="featured__client">Client</div>
+            <div class="featured__name">StepGenie</div>
+            <p class="featured__desc">An AI-powered USMLE preparation platform serving aspiring medical residents preparing for one of the most consequential exams in their careers.</p>
+          </div>
+          <div>
+            <dl class="featured__meta">
+              <div class="featured__row"><dt>Category</dt><dd>AI EdTech</dd></div>
+              <div class="featured__row"><dt>Engagement</dt><dd>Trust infrastructure rebuild</dd></div>
+              <div class="featured__row"><dt>Window</dt><dd>30 days</dd></div>
+              <div class="featured__row"><dt>Status</dt><dd>Ongoing</dd></div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="featured__story">
+          <div>
+            <h4>Before</h4>
+            <p>Revenue had dropped 25%. Growth was dependent on a single influencer relationship. Organic trust systems were thin, and the brand had no presence in the conversations where buyers actually decided.</p>
+          </div>
+          <div>
+            <h4>Research</h4>
+            <p>Customer interviews, audience studies and community behavior analysis. Three discovery patterns surfaced: Instagram as entry, Reddit as validation, YouTube for concept learning.</p>
+          </div>
+          <div>
+            <h4>Strategy</h4>
+            <p>A multi-platform trust infrastructure — coordinated authority content, AI search visibility, and community presence — engineered so every touchpoint reinforced the next.</p>
+          </div>
+        </div>
+
+        <div class="featured__metrics">
+          <div class="featured__metrics-label">Results · First 30 Days</div>
+          <div class="metrics-grid reveal-stagger">
+            <div class="metric" data-metric>
+              <div class="metric__value" data-count="200" data-suffix="K+">0</div>
+              <div class="metric__label">Instagram organic views</div>
+              <div class="metric__bar"><i></i></div>
+            </div>
+            <div class="metric" data-metric>
+              <div class="metric__value" data-count="120" data-prefix="+" data-suffix="%">0</div>
+              <div class="metric__label">YouTube view growth</div>
+              <div class="metric__bar"><i></i></div>
+            </div>
+            <div class="metric" data-metric>
+              <div class="metric__value" data-count="50" data-prefix="+" data-suffix="%">0</div>
+              <div class="metric__label">YouTube subscribers</div>
+              <div class="metric__bar"><i></i></div>
+            </div>
+            <div class="metric" data-metric>
+              <div class="metric__value" data-count="10" data-suffix="K+">0</div>
+              <div class="metric__label">Reddit visibility reached</div>
+              <div class="metric__bar"><i></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="featured__followup">
+          <div><strong>Ongoing.</strong> Citation density across AI search, Reddit and YouTube continues to compound month over month.</div>
+          <a class="btn" href="index.html#book">Discuss a similar engagement <span class="arr">→</span></a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Blueprints -->
+  <section class="section">
+    <div class="wrap">
+      <header class="section__bar reveal-stagger">
+        <h2 class="section__title">Engagement <em>Blueprints</em></h2>
+        <div class="section__caption">Illustrative scenarios. No client names.</div>
+      </header>
+
+      <div class="disclosure reveal">
+        <strong>About these blueprints.</strong> Each Engagement Blueprint below is an illustrative scenario — a composite of the patterns we see in a category, paired with the Trust Layer™ framework we would deploy against it. They are not records of past client work. Real engagement results vary; the StepGenie case above is our one publicly-named live case study.
+      </div>
+
+      <div class="blueprints reveal-stagger" style="margin-top: 38px;">
+
+        <!-- Blueprint 01 -->
+        <article class="bp">
+          <div class="bp__tag">Engagement Blueprint · 01</div>
+          <h3 class="bp__title">The <em>Series A AI SaaS</em> launching into a crowded category.</h3>
+
+          <dl class="bp__profile">
+            <div class="bp__profile-row"><dt>Brand archetype</dt><dd>Horizontal AI tool, $1–3M ARR, 8–15 people.</dd></div>
+            <div class="bp__profile-row"><dt>The problem</dt><dd>Product is sharp, but ChatGPT and Perplexity cite three of your competitors when prospects ask "what's the best X for Y?"</dd></div>
+            <div class="bp__profile-row"><dt>Where trust leaks</dt><dd>AI answers, Reddit comparison threads, founder-led X presence, evaluator content on YouTube.</dd></div>
+          </dl>
+
+          <div class="bp__blocks">
+            <div class="bp__block">
+              <h5>What we'd build</h5>
+              <p>Citation-shaped long-form content engineered for AI training corpora, founder positioning on X, a credible Reddit voice across the three communities where evaluation happens, and one definitive teardown video.</p>
+            </div>
+            <div class="bp__block">
+              <h5>How we'd know it's working</h5>
+              <p>Brand mentioned by name when prompts ask for "best [category]" in ChatGPT, Perplexity and Google AI Overviews. Reddit threads start to surface positive operator references unprompted.</p>
+            </div>
+          </div>
+
+          <div class="bp__signals">
+            <div class="bp__signal"><span class="bp__signal-label">AI answer inclusion (relevant prompts)</span><span class="bp__signal-value">From 0 → 4 of 10</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Reddit organic mentions / month</span><span class="bp__signal-value">From 0 → 18–25</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Founder net new followers (X)</span><span class="bp__signal-value">+2.5–4K / 60 days</span></div>
+          </div>
+
+          <div class="bp__footer"><span>Trust Layer™ stages: Discover · Position · Distribute</span><span>60 days</span></div>
+        </article>
+
+        <!-- Blueprint 02 -->
+        <article class="bp">
+          <div class="bp__tag">Engagement Blueprint · 02</div>
+          <h3 class="bp__title">The <em>D2C health brand</em> with strong product, invisible online.</h3>
+
+          <dl class="bp__profile">
+            <div class="bp__profile-row"><dt>Brand archetype</dt><dd>D2C supplement, skincare or functional health brand, $3–10M ARR.</dd></div>
+            <div class="bp__profile-row"><dt>The problem</dt><dd>Paid acquisition costs are climbing. Customers buy once and don't research the brand at all, because there's nothing to research.</dd></div>
+            <div class="bp__profile-row"><dt>Where trust leaks</dt><dd>Instagram for entry, YouTube for product validation, Reddit for "is this brand legit?" Google for ingredient research.</dd></div>
+          </dl>
+
+          <div class="bp__blocks">
+            <div class="bp__block">
+              <h5>What we'd build</h5>
+              <p>An editorial content layer that answers the exact ingredient and protocol questions customers Google, distributed via authority creators, a transparent Reddit presence, and structured data so AI engines surface the brand for the right intents.</p>
+            </div>
+            <div class="bp__block">
+              <h5>How we'd know it's working</h5>
+              <p>Branded search up, return rates down, and the brand starts being recommended in Reddit threads without our prompting. AI answers begin naming the brand when describing the protocol category.</p>
+            </div>
+          </div>
+
+          <div class="bp__signals">
+            <div class="bp__signal"><span class="bp__signal-label">Branded search lift</span><span class="bp__signal-value">+35–60%</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Organic Instagram impressions</span><span class="bp__signal-value">120K–300K / mo</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Repeat purchase rate</span><span class="bp__signal-value">+6–11 pts</span></div>
+          </div>
+
+          <div class="bp__footer"><span>Trust Layer™ stages: Position · Distribute · Reinforce</span><span>90 days</span></div>
+        </article>
+
+        <!-- Blueprint 03 -->
+        <article class="bp">
+          <div class="bp__tag">Engagement Blueprint · 03</div>
+          <h3 class="bp__title">The <em>creator-led education</em> company hitting a ceiling.</h3>
+
+          <dl class="bp__profile">
+            <div class="bp__profile-row"><dt>Brand archetype</dt><dd>Course / cohort / community business, $500K–3M ARR, fully founder-dependent.</dd></div>
+            <div class="bp__profile-row"><dt>The problem</dt><dd>Audience is loyal but the brand can't grow past the founder's attention. Every launch feels manual. No compounding asset.</dd></div>
+            <div class="bp__profile-row"><dt>Where trust leaks</dt><dd>YouTube for proof of teaching, Reddit and Twitter for student validation, AI search for the "is this course worth it?" question.</dd></div>
+          </dl>
+
+          <div class="bp__blocks">
+            <div class="bp__block">
+              <h5>What we'd build</h5>
+              <p>A long-form YouTube authority engine, alumni-led trust signals across Reddit and X, and indexable case-study content engineered for AI search inclusion. The founder becomes a brand layer, not the entire brand.</p>
+            </div>
+            <div class="bp__block">
+              <h5>How we'd know it's working</h5>
+              <p>Inbound applications stop tracking launch cadence and start tracking calendar — they arrive every week, sourced from compound discovery. AI engines describe the founder's curriculum by name when asked about the topic.</p>
+            </div>
+          </div>
+
+          <div class="bp__signals">
+            <div class="bp__signal"><span class="bp__signal-label">YouTube watch-time / month</span><span class="bp__signal-value">+150–220%</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Inbound discovery applications</span><span class="bp__signal-value">2.5–3.5×</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Launch-independent revenue share</span><span class="bp__signal-value">From 18% → 55%+</span></div>
+          </div>
+
+          <div class="bp__footer"><span>Trust Layer™ stages: Distribute · Reinforce · Compound</span><span>90 days</span></div>
+        </article>
+
+        <!-- Blueprint 04 -->
+        <article class="bp">
+          <div class="bp__tag">Engagement Blueprint · 04</div>
+          <h3 class="bp__title">The <em>specialty service provider</em> with regional dominance and no AI footprint.</h3>
+
+          <dl class="bp__profile">
+            <div class="bp__profile-row"><dt>Brand archetype</dt><dd>Dental group, legal practice, financial advisory or boutique clinic with 2–6 locations.</dd></div>
+            <div class="bp__profile-row"><dt>The problem</dt><dd>Local SEO and word of mouth deliver a steady stream, but the brand vanishes the moment buyers ask AI engines for a recommendation.</dd></div>
+            <div class="bp__profile-row"><dt>Where trust leaks</dt><dd>Google AI Overviews, ChatGPT recommendations, niche professional forums, YouTube long-form patient/client education.</dd></div>
+          </dl>
+
+          <div class="bp__blocks">
+            <div class="bp__block">
+              <h5>What we'd build</h5>
+              <p>Authoritative practitioner-led content (long-form articles, structured FAQ, condition deep-dives), AI search visibility through indexable schema and citations, plus a thoughtful presence in the specialty's online communities.</p>
+            </div>
+            <div class="bp__block">
+              <h5>How we'd know it's working</h5>
+              <p>The practice is named in AI answers to "best [specialty] in [city]" prompts. Inbound new-patient inquiries cite "I found you through ChatGPT / Google AI" as the source.</p>
+            </div>
+          </div>
+
+          <div class="bp__signals">
+            <div class="bp__signal"><span class="bp__signal-label">AI-sourced new client inquiries</span><span class="bp__signal-value">From 0 → 12–25 / mo</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Authority article impressions</span><span class="bp__signal-value">40K–90K / mo</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Branded search (regional)</span><span class="bp__signal-value">+45–80%</span></div>
+          </div>
+
+          <div class="bp__footer"><span>Trust Layer™ stages: Discover · Position · Distribute · Reinforce</span><span>120 days</span></div>
+        </article>
+
+        <!-- Blueprint 05 -->
+        <article class="bp">
+          <div class="bp__tag">Engagement Blueprint · 05</div>
+          <h3 class="bp__title">The <em>category-defining startup</em> that has the product but not the narrative.</h3>
+
+          <dl class="bp__profile">
+            <div class="bp__profile-row"><dt>Brand archetype</dt><dd>Seed or Series A startup creating a new category — vertical AI agent, infrastructure tool, or operating-system-style product.</dd></div>
+            <div class="bp__profile-row"><dt>The problem</dt><dd>The market doesn't yet have language for what you do. Investors get it on a 30-minute call. Buyers don't, because there's no category to anchor to.</dd></div>
+            <div class="bp__profile-row"><dt>Where trust leaks</dt><dd>X for narrative formation, long-form essays for anchoring, AI engines for category definition, podcasts for operator validation.</dd></div>
+          </dl>
+
+          <div class="bp__blocks">
+            <div class="bp__block">
+              <h5>What we'd build</h5>
+              <p>A category-defining manifesto, an essay flywheel for the founder, ten conversations with the right podcast hosts, and a citation surface tuned so AI engines learn the category name and learn the company as its definition.</p>
+            </div>
+            <div class="bp__block">
+              <h5>How we'd know it's working</h5>
+              <p>The new category name starts appearing in third-party writing. AI engines describe the company's product as <em>the</em> example of the category. Inbound from the right buyer ICP appears without targeting.</p>
+            </div>
+          </div>
+
+          <div class="bp__signals">
+            <div class="bp__signal"><span class="bp__signal-label">Third-party category mentions</span><span class="bp__signal-value">From 0 → 30–60 / mo</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Podcast appearances (operator-grade)</span><span class="bp__signal-value">8–12 / 90 days</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Inbound ICP-fit demo requests</span><span class="bp__signal-value">2–3.5× pre-engagement</span></div>
+          </div>
+
+          <div class="bp__footer"><span>Trust Layer™ stages: Position · Distribute · Compound</span><span>120 days</span></div>
+        </article>
+
+        <!-- Blueprint 06 -->
+        <article class="bp">
+          <div class="bp__tag">Engagement Blueprint · 06</div>
+          <h3 class="bp__title">The <em>established brand</em> being out-cited by AI-native challengers.</h3>
+
+          <dl class="bp__profile">
+            <div class="bp__profile-row"><dt>Brand archetype</dt><dd>Eight-figure incumbent in an established category, strong product, slow content team.</dd></div>
+            <div class="bp__profile-row"><dt>The problem</dt><dd>AI engines learned the category from younger, content-fluent challengers. The incumbent is the safer choice and the second answer.</dd></div>
+            <div class="bp__profile-row"><dt>Where trust leaks</dt><dd>AI search citations, comparison content, evaluator-led YouTube, mid-funnel review platforms.</dd></div>
+          </dl>
+
+          <div class="bp__blocks">
+            <div class="bp__block">
+              <h5>What we'd build</h5>
+              <p>A citation-aware editorial program shipping the long-form proof points the AI engines need, a coordinated evaluator outreach loop, and operator-led narrative content that reasserts the incumbent's authority.</p>
+            </div>
+            <div class="bp__block">
+              <h5>How we'd know it's working</h5>
+              <p>AI engines stop framing the brand as legacy and start naming it as the credible default. Branded vs. challenger share of voice in AI answers flips back.</p>
+            </div>
+          </div>
+
+          <div class="bp__signals">
+            <div class="bp__signal"><span class="bp__signal-label">Share-of-AI-voice vs. top challenger</span><span class="bp__signal-value">From 28% → 55–65%</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Net new citation-grade articles</span><span class="bp__signal-value">24–36 / 90 days</span></div>
+            <div class="bp__signal"><span class="bp__signal-label">Evaluator coverage (YouTube + written)</span><span class="bp__signal-value">12–20 placements</span></div>
+          </div>
+
+          <div class="bp__footer"><span>Trust Layer™ stages: Reinforce · Compound</span><span>120 days</span></div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Closer -->
+  <section class="closer">
+    <div class="wrap reveal-stagger">
+      <h2>Your engagement doesn't exist yet. <em>It should.</em></h2>
+      <p>If one of these blueprints sounds like your brand, the discovery call is where we make it specific — to your market, your stage and what trust actually means in your category.</p>
+      <div class="closer__cta">
+        <a href="index.html#book" class="btn btn--primary">Book Discovery Call <span class="arr">→</span></a>
+        <a href="index.html" class="btn">Back to TrustedAEO® <span class="arr">↗</span></a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap footer__row">
+      <div class="footer__copy">© 2026 TrustedAEO® — Trust Infrastructure for Modern Brands</div>
+      <div class="footer__links">
+        <a href="Case Studies.html">Case Studies</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#philosophy">Philosophy</a>
+        <a href="index.html#book">Book a call</a>
+      </div>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+  // Nav scroll state
+  const nav = document.getElementById('nav');
+  let lastY = -1;
+  function onScroll() {
+    const y = window.scrollY;
+    if (y === lastY) return;
+    lastY = y;
+    nav.classList.toggle('scrolled', y > 24);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Reveal on scroll
+  const io = new IntersectionObserver(entries => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        e.target.classList.add('in-view');
+        io.unobserve(e.target);
+      }
+    }
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal, .reveal-stagger, [data-metric]').forEach(el => io.observe(el));
+
+  // Animated counters
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  const metricIO = new IntersectionObserver(entries => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      const el = e.target;
+      const target = parseFloat(el.dataset.count);
+      const prefix = el.dataset.prefix || '';
+      const suffix = el.dataset.suffix || '';
+      const dur = 1600;
+      const start = performance.now();
+      function tick(now) {
+        const k = Math.min(1, (now - start) / dur);
+        const v = Math.round(target * easeOutCubic(k));
+        el.innerHTML = prefix + v + '<span class="unit">' + suffix + '</span>';
+        if (k < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+      metricIO.unobserve(el);
+    }
+  }, { threshold: 0.4 });
+  document.querySelectorAll('.metric__value').forEach(el => metricIO.observe(el));
+
+  // Smooth scroll for in-page anchors
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href');
+      if (id.length < 2) return;
+      const target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      const top = target.getBoundingClientRect().top + window.scrollY - 40;
+      window.scrollTo({ top, behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>

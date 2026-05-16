@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TrustedAEO® — Writing & POV</title>
+<link rel="icon" type="image/png" href="trustedaeo-logo.png" />
+<link rel="apple-touch-icon" href="trustedaeo-logo.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" />
+
+<style>
+  :root {
+    --bg-0: #07080b;
+    --bg-1: #0a0c11;
+    --bg-2: #11141b;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --text: #eef0f4;
+    --text-soft: #c6cbd4;
+    --text-muted: #8b919c;
+    --text-dim: #5d6470;
+    --glass: rgba(255, 255, 255, 0.04);
+    --glass-strong: rgba(255, 255, 255, 0.07);
+    --serif: "Instrument Serif", "Times New Roman", serif;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --maxw: 1240px;
+    --pad: clamp(24px, 4vw, 64px);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg-0); color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+  ::selection { background: rgba(220,235,255,0.25); }
+
+  .bg-stage {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(80% 60% at 10% 10%, rgba(45, 60, 100, 0.30) 0%, transparent 55%),
+      radial-gradient(70% 50% at 95% 95%, rgba(70, 55, 90, 0.22) 0%, transparent 60%),
+      radial-gradient(120% 80% at 50% 50%, #11141b 0%, #0a0c11 45%, #06070a 80%, #04050700 100%);
+  }
+  .bg-grain {
+    position: fixed; inset: -5%; z-index: 2; pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: overlay; opacity: 0.42;
+  }
+  .page { position: relative; z-index: 3; }
+  .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--pad); }
+
+  /* Nav */
+  .nav {
+    position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+    z-index: 30; width: min(1180px, calc(100vw - 32px));
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px 12px 22px;
+    background: rgba(12, 14, 18, 0.55);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-radius: 999px;
+    transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+  }
+  .nav.scrolled { background: rgba(8,10,14,0.78); box-shadow: 0 14px 40px -18px rgba(0,0,0,0.6); }
+  .nav__logo {
+    font-family: var(--serif); font-size: 19px; letter-spacing: -0.01em;
+    color: var(--text); display: inline-flex; align-items: center; gap: 10px;
+    text-decoration: none;
+  }
+  .nav__logo-mark {
+    width: 26px; height: 26px; display: block; flex: 0 0 26px;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35));
+    transition: transform 0.4s cubic-bezier(.2,.7,.2,1);
+  }
+  .nav__logo:hover .nav__logo-mark { transform: rotate(-6deg) scale(1.05); }
+  .nav__logo-text { display: inline-flex; align-items: baseline; gap: 4px; }
+  .nav__logo .reg {
+    font-family: var(--sans); font-size: 9px;
+    color: var(--text-muted); transform: translateY(-6px);
+  }
+  .nav__links { display: flex; gap: 28px; align-items: center; }
+  .nav__links a {
+    color: var(--text-soft); text-decoration: none;
+    font-size: 13.5px; letter-spacing: 0.01em;
+    transition: color 0.25s;
+  }
+  .nav__links a:hover { color: var(--text); }
+  .nav__links a.is-active { color: var(--text); }
+  .nav__cta {
+    font-size: 13px; font-weight: 500;
+    padding: 10px 18px; border-radius: 999px;
+    color: #0b0d12;
+    background: linear-gradient(180deg, #f6f8fc 0%, #c8d0de 100%);
+    border: 1px solid rgba(255,255,255,0.4);
+    text-decoration: none;
+    box-shadow: 0 6px 24px -8px rgba(220,235,255,0.25), inset 0 1px 0 rgba(255,255,255,0.7);
+    transition: transform 0.25s, filter 0.25s;
+  }
+  .nav__cta:hover { transform: translateY(-1px); filter: brightness(1.05); }
+  @media (max-width: 760px) { .nav__links { display: none; } }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 14px; font-weight: 500;
+    padding: 14px 22px; border-radius: 999px;
+    text-decoration: none; cursor: pointer;
+    border: 1px solid var(--line-strong);
+    background: var(--glass); color: var(--text);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    transition: transform 0.3s, background 0.3s, border-color 0.3s, box-shadow 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .btn::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0) 60%);
+    pointer-events: none;
+  }
+  .btn:hover {
+    transform: translateY(-1px);
+    background: var(--glass-strong);
+    border-color: rgba(255,255,255,0.28);
+    box-shadow: 0 12px 36px -14px rgba(180,200,230,0.25);
+  }
+  .btn--primary {
+    color: #0b0d12;
+    background: linear-gradient(180deg, #f6f8fc 0%, #c8d0de 100%);
+    border-color: rgba(255,255,255,0.45);
+    box-shadow: 0 8px 28px -10px rgba(220,235,255,0.25), inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .btn--primary::before { display: none; }
+  .btn--primary:hover { filter: brightness(1.05); }
+  .btn .arr { font-weight: 300; transition: transform 0.3s; }
+  .btn:hover .arr { transform: translateX(3px); }
+
+  h1, h2, h3, h4 { margin: 0; font-weight: 400; letter-spacing: -0.02em; }
+  .serif { font-family: var(--serif); }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 11.5px; font-weight: 500; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--line-strong); }
+
+  /* Page hero */
+  .page-hero {
+    padding: 170px 0 70px;
+    display: grid; gap: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .page-hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(48px, 7vw, 104px);
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    text-wrap: balance;
+    max-width: 1080px;
+  }
+  .page-hero h1 em { font-style: italic; color: #d6def0; }
+  .page-hero p {
+    color: var(--text-soft);
+    font-size: clamp(15.5px, 1.4vw, 18px);
+    line-height: 1.55;
+    max-width: 680px;
+    text-wrap: pretty;
+  }
+  .page-hero__breadcrumb {
+    color: var(--text-muted);
+    font-size: 12.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .page-hero__breadcrumb a { color: var(--text-soft); text-decoration: none; }
+  .page-hero__breadcrumb a:hover { color: var(--text); }
+  .page-hero__breadcrumb .sep { margin: 0 12px; color: var(--text-dim); }
+
+  .section { padding: clamp(80px, 11vw, 130px) 0; }
+  .section__bar {
+    display: flex; align-items: baseline; gap: 22px;
+    flex-wrap: wrap;
+    margin-bottom: clamp(36px, 5vw, 56px);
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section__title {
+    font-family: var(--serif);
+    font-size: clamp(34px, 4.2vw, 60px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .section__title em { font-style: italic; color: #d6def0; }
+  .section__caption {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    letter-spacing: 0.04em;
+    margin-left: auto;
+    text-align: right;
+  }
+  @media (max-width: 720px) {
+    .section__caption { text-align: left; margin-left: 0; }
+  }
+
+  /* ---------- Featured essay ---------- */
+  .featured-essay {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    overflow: hidden;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  @media (max-width: 960px) { .featured-essay { grid-template-columns: 1fr; } }
+  .featured-essay > div { background: rgba(10, 12, 16, 0.55); padding: 44px 44px 46px; display: grid; gap: 22px; }
+  .featured-essay__meta {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .featured-essay__meta .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text-dim); }
+  .featured-essay__meta .tag {
+    color: var(--text-soft);
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+  }
+  .featured-essay h2 {
+    font-family: var(--serif);
+    font-size: clamp(34px, 4.4vw, 56px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-wrap: balance;
+  }
+  .featured-essay h2 em { font-style: italic; color: #d6def0; }
+  .featured-essay__dek {
+    color: var(--text-soft);
+    font-size: 16px;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+  .featured-essay__pull {
+    font-family: var(--serif);
+    font-size: 22px;
+    line-height: 1.3;
+    color: var(--text);
+    padding-left: 18px;
+    border-left: 2px solid rgba(220,235,255,0.45);
+    text-wrap: pretty;
+  }
+  .featured-essay__pull em { font-style: italic; color: #d6def0; }
+  .featured-essay__cta { margin-top: 8px; }
+
+  /* ---------- Essay grid ---------- */
+  .essays {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+  }
+  @media (max-width: 880px) { .essays { grid-template-columns: 1fr; } }
+  .essay {
+    position: relative;
+    display: grid;
+    gap: 20px;
+    padding: 30px 30px 28px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.012));
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
+    overflow: hidden;
+  }
+  .essay::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 30%);
+    pointer-events: none;
+  }
+  .essay::after {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, rgba(220,235,255,0.55), transparent);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.6s ease;
+  }
+  .essay:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255,255,255,0.18);
+    box-shadow: 0 30px 80px -40px rgba(0,0,0,0.7);
+  }
+  .essay:hover::after { transform: scaleX(1); }
+  .essay__meta {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .essay__meta .tag {
+    color: var(--text-soft);
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+  }
+  .essay__meta .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text-dim); }
+  .essay__title {
+    font-family: var(--serif);
+    font-size: clamp(24px, 2.6vw, 34px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-wrap: balance;
+  }
+  .essay__title em { font-style: italic; color: #d6def0; }
+  .essay__dek {
+    color: var(--text-soft);
+    font-size: 14.5px;
+    line-height: 1.6;
+    margin: 0;
+    text-wrap: pretty;
+  }
+  .essay__footer {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding-top: 4px;
+    color: var(--text-dim); font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .essay__footer .read {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--text-soft);
+  }
+  .essay__footer .read .arr { transition: transform 0.3s; }
+  .essay:hover .essay__footer .read .arr { transform: translateX(4px); color: var(--text); }
+
+  /* ---------- Disclosure ---------- */
+  .disclosure {
+    margin-top: 26px;
+    padding: 16px 20px;
+    border: 1px dashed rgba(220,235,255,0.16);
+    border-radius: 14px;
+    color: var(--text-soft);
+    font-size: 13px;
+    line-height: 1.55;
+    max-width: 920px;
+    background: rgba(255,255,255,0.025);
+  }
+  .disclosure strong { color: var(--text); font-weight: 500; }
+
+  /* ---------- Closer ---------- */
+  .closer {
+    padding: clamp(100px, 14vw, 160px) 0 clamp(40px, 6vw, 80px);
+    text-align: center;
+    border-top: 1px solid var(--line);
+  }
+  .closer h2 {
+    font-family: var(--serif);
+    font-size: clamp(38px, 5vw, 72px);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    max-width: 900px;
+    margin: 0 auto;
+    text-wrap: balance;
+  }
+  .closer h2 em { font-style: italic; color: #d6def0; }
+  .closer p {
+    color: var(--text-muted);
+    max-width: 540px;
+    margin: 20px auto 32px;
+    font-size: 15px;
+  }
+  .closer__cta { display: inline-flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  .footer {
+    border-top: 1px solid var(--line);
+    padding: 40px 0 60px;
+    color: var(--text-muted);
+    font-size: 12.5px;
+  }
+  .footer__row {
+    display: flex; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap; align-items: baseline;
+  }
+  .footer__links { display: flex; gap: 22px; }
+  .footer__links a { color: var(--text-soft); text-decoration: none; }
+  .footer__links a:hover { color: var(--text); }
+  .footer__copy { color: var(--text-dim); }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 1s cubic-bezier(.2,.7,.2,1), transform 1s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in-view { opacity: 1; transform: none; }
+  .reveal-stagger > * { opacity: 0; transform: translateY(18px); transition: opacity 0.9s cubic-bezier(.2,.7,.2,1), transform 0.9s cubic-bezier(.2,.7,.2,1); }
+  .reveal-stagger.in-view > * { opacity: 1; transform: none; }
+  .reveal-stagger.in-view > *:nth-child(1) { transition-delay: 0.00s; }
+  .reveal-stagger.in-view > *:nth-child(2) { transition-delay: 0.08s; }
+  .reveal-stagger.in-view > *:nth-child(3) { transition-delay: 0.16s; }
+  .reveal-stagger.in-view > *:nth-child(4) { transition-delay: 0.24s; }
+  .reveal-stagger.in-view > *:nth-child(5) { transition-delay: 0.32s; }
+  .reveal-stagger.in-view > *:nth-child(6) { transition-delay: 0.40s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal-stagger > * { opacity: 1 !important; transform: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-stage" aria-hidden="true"></div>
+<div class="bg-grain" aria-hidden="true"></div>
+
+<nav class="nav" id="nav">
+  <a href="index.html" class="nav__logo">
+    <img src="trustedaeo-logo.png" alt="" class="nav__logo-mark" />
+    <span class="nav__logo-text">TrustedAEO<span class="reg">®</span></span>
+  </a>
+  <div class="nav__links">
+    <a href="Writing.html" class="is-active">Writing</a>
+    <a href="Case Studies.html">Case Studies</a>
+    <a href="index.html#services">Services</a>
+    <a href="index.html#discipline">What We Do</a>
+  </div>
+  <a href="index.html#book" class="nav__cta">Book Discovery Call</a>
+</nav>
+
+<main class="page">
+
+  <section class="page-hero wrap">
+    <div class="page-hero__breadcrumb">
+      <a href="index.html">TrustedAEO®</a>
+      <span class="sep">/</span>
+      <span>Writing</span>
+    </div>
+    <h1>Field notes on <em>engineering trust</em>.</h1>
+    <p>Essays, frameworks and operator-grade thinking on Answer Engine Optimization, Generative Engine Optimization, and the trust infrastructure modern brands need to win the answer.</p>
+  </section>
+
+  <!-- Featured essay -->
+  <section class="section">
+    <div class="wrap">
+      <header class="section__bar reveal-stagger">
+        <h2 class="section__title">Lead <em>essay</em></h2>
+        <div class="section__caption">The foundational read</div>
+      </header>
+
+      <article class="featured-essay reveal">
+        <div>
+          <div class="featured-essay__meta">
+            <span class="tag">Foundations</span>
+            <span class="dot"></span>
+            <span>By Naman Garg</span>
+            <span class="dot"></span>
+            <span>9 min read</span>
+          </div>
+          <h2>AEO Is Not the Future of SEO. <em>It is a different discipline.</em></h2>
+          <p class="featured-essay__dek">The instinct, for anyone who built a career on search, is to treat Answer Engine Optimization as SEO with a new prefix. That instinct will quietly burn the next three years of effort. SEO optimized for crawl and rank. AEO optimizes for citation and retrieval. The two share an internet and almost nothing else.</p>
+          <a class="btn" href="#essays">Read the full archive <span class="arr">↓</span></a>
+        </div>
+        <div>
+          <div class="featured-essay__meta">
+            <span>Pull quote</span>
+          </div>
+          <blockquote class="featured-essay__pull">
+            "Search optimization was a contest of <em>positioning</em>. Answer optimization is a contest of <em>citation</em>. The first is fought at the SERP. The second is fought inside the model — and most of the work happens months before a single query is typed."
+          </blockquote>
+          <div style="color: var(--text-muted); font-size: 13px; line-height: 1.6;">
+            The piece breaks down the four-layer stack underneath modern AI search — corpus, citation, retrieval, answer — and the craft each layer demands. It's the first essay we send any founder before an engagement begins.
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Essay archive -->
+  <section class="section" id="essays">
+    <div class="wrap">
+      <header class="section__bar reveal-stagger">
+        <h2 class="section__title">The <em>archive</em></h2>
+        <div class="section__caption">Frameworks · diagnostics · deep dives</div>
+      </header>
+
+      <div class="essays reveal-stagger">
+
+        <a class="essay" href="#">
+          <div class="essay__meta"><span class="tag">Deep dive</span><span class="dot"></span><span>7 min</span></div>
+          <h3 class="essay__title">The <em>Citation Substrate</em>: how answer engines actually decide who to quote.</h3>
+          <p class="essay__dek">There is a public misconception that AI search returns the highest-quality result. It does not. It returns the most cited result — weighted for trust, novelty, and a small number of less visible signals. Once you understand the substrate, the work becomes obvious.</p>
+          <div class="essay__footer">
+            <span>Framework</span>
+            <span class="read">Read <span class="arr">→</span></span>
+          </div>
+        </a>
+
+        <a class="essay" href="#">
+          <div class="essay__meta"><span class="tag">Field study</span><span class="dot"></span><span>6 min</span></div>
+          <h3 class="essay__title">Reddit is the <em>trust layer</em> of the English-speaking internet.</h3>
+          <p class="essay__dek">Reddit looks like a forum and behaves like one. Functionally, it is the most heavily-cited validation source in modern AI search corpora. Buyers know this intuitively. Models know it explicitly. The brands that win the next decade will build their Reddit posture before they build their SEO.</p>
+          <div class="essay__footer">
+            <span>Channels</span>
+            <span class="read">Read <span class="arr">→</span></span>
+          </div>
+        </a>
+
+        <a class="essay" href="#">
+          <div class="essay__meta"><span class="tag">Operator</span><span class="dot"></span><span>8 min</span></div>
+          <h3 class="essay__title">What founders get wrong about <em>"personal brand."</em></h3>
+          <p class="essay__dek">The discourse frames founder-led content as a vanity exercise — a play for likes and retweets. From an AEO standpoint, it is closer to documentation engineering. A founder's body of public thinking is a signal layer the model uses to disambiguate who you are and what you stand for.</p>
+          <div class="essay__footer">
+            <span>Founder voice</span>
+            <span class="read">Read <span class="arr">→</span></span>
+          </div>
+        </a>
+
+        <a class="essay" href="#">
+          <div class="essay__meta"><span class="tag">Thesis</span><span class="dot"></span><span>5 min</span></div>
+          <h3 class="essay__title">Trust <em>compounds</em>. Attention doesn't.</h3>
+          <p class="essay__dek">Most marketing optimizes for the moment a buyer first sees you. The mistake is treating that moment as the whole game. In a citation economy, the value of attention decays in days. The value of trust compounds for years — quietly, then all at once.</p>
+          <div class="essay__footer">
+            <span>Thesis</span>
+            <span class="read">Read <span class="arr">→</span></span>
+          </div>
+        </a>
+
+        <a class="essay" href="#">
+          <div class="essay__meta"><span class="tag">Framework</span><span class="dot"></span><span>12 min</span></div>
+          <h3 class="essay__title">The <em>Trust Layer™</em> Framework: a field manual.</h3>
+          <p class="essay__dek">Five stages — Discover, Position, Distribute, Reinforce, Compound — applied sequentially, compounding indefinitely. This is what we deploy when we run an engagement. The long version, with worked examples for SaaS, D2C, and creator-led education companies.</p>
+          <div class="essay__footer">
+            <span>Methodology</span>
+            <span class="read">Read <span class="arr">→</span></span>
+          </div>
+        </a>
+
+        <a class="essay" href="#">
+          <div class="essay__meta"><span class="tag">Deep dive</span><span class="dot"></span><span>7 min</span></div>
+          <h3 class="essay__title">From <em>surface SEO</em> to citation engineering.</h3>
+          <p class="essay__dek">The old optimization stack was a flat surface — keyword, rank, click. The new stack is layered: corpus, citation, retrieval, answer. Each layer wants different craft, different content, and a different definition of "winning." This piece names the four crafts.</p>
+          <div class="essay__footer">
+            <span>Discipline</span>
+            <span class="read">Read <span class="arr">→</span></span>
+          </div>
+        </a>
+
+        <a class="essay" href="#">
+          <div class="essay__meta"><span class="tag">Diagnostic</span><span class="dot"></span><span>6 min</span></div>
+          <h3 class="essay__title">Three <em>signals</em> an answer engine learns about your brand.</h3>
+          <p class="essay__dek">Identity. Authority. Consensus. Every modern AI search model is, underneath, learning a triplet for every brand in its training set. Most companies invest in one. The brands that win invest in all three — and explicitly, in the order that the model will read them.</p>
+          <div class="essay__footer">
+            <span>Framework</span>
+            <span class="read">Read <span class="arr">→</span></span>
+          </div>
+        </a>
+
+        <a class="essay" href="#">
+          <div class="essay__meta"><span class="tag">Operator</span><span class="dot"></span><span>9 min</span></div>
+          <h3 class="essay__title">PR is back. And it's a <em>citation play</em> now.</h3>
+          <p class="essay__dek">For a decade, PR was treated as legacy marketing — expensive, slow, hard to attribute. In the answer-engine era, earned media is the cleanest citation a brand can buy. Not for the eyeballs. For the model. We break down which placements move the needle and which are decorative.</p>
+          <div class="essay__footer">
+            <span>Earned media</span>
+            <span class="read">Read <span class="arr">→</span></span>
+          </div>
+        </a>
+
+      </div>
+
+      <div class="disclosure reveal">
+        <strong>About the archive.</strong> These essays represent the operating thesis of TrustedAEO® and the working frameworks Naman writes from. New pieces are added as positions sharpen. To follow along, the discovery call is the most direct way — or watch the founder's public feed.
+      </div>
+    </div>
+  </section>
+
+  <section class="closer">
+    <div class="wrap reveal-stagger">
+      <h2>If the writing resonates, <em>so will the work</em>.</h2>
+      <p>A 30-minute discovery call. We'll diagnose where your brand sits in the citation layer today and what it would take to be the answer.</p>
+      <div class="closer__cta">
+        <a href="index.html#book" class="btn btn--primary">Book Discovery Call <span class="arr">→</span></a>
+        <a href="Case Studies.html" class="btn">See the case studies <span class="arr">↗</span></a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap footer__row">
+      <div class="footer__copy">© 2026 TrustedAEO® — Answer Engine Optimization. Built end-to-end.</div>
+      <div class="footer__links">
+        <a href="Writing.html">Writing</a>
+        <a href="Case Studies.html">Case Studies</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#book">Book a call</a>
+      </div>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+  const nav = document.getElementById('nav');
+  let lastY = -1;
+  function onScroll() {
+    const y = window.scrollY;
+    if (y === lastY) return;
+    lastY = y;
+    nav.classList.toggle('scrolled', y > 24);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  const io = new IntersectionObserver(entries => {
+    for (const e of entries) {
+      if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); }
+    }
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => io.observe(el));
+
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href');
+      if (id.length < 2) return;
+      const target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      const top = target.getBoundingClientRect().top + window.scrollY - 40;
+      window.scrollTo({ top, behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>
