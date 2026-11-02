@@ -59,7 +59,9 @@ begin
   if exists (select 1 from shop_members where user_id = auth.uid()) then
     raise exception 'This account already belongs to a shop' using errcode = 'P0001';
   end if;
-  insert into shops(name, owner_user_id, phone) values (p_name, auth.uid(), p_phone) returning * into s;
+  insert into shops(name, owner_user_id, phone, settings)
+  values (p_name, auth.uid(), p_phone, jsonb_build_object('shop_code', upper(substr(encode(gen_random_bytes(6), 'hex'), 1, 6))))
+  returning * into s;
   insert into shop_members(shop_id, user_id, role, display_name, phone,
     permissions)
   values (s.id, auth.uid(), 'owner', p_owner_name, p_phone,
@@ -86,12 +88,27 @@ begin
   perform _audit(m.shop_id, m.id, 'shop_members', p_member_id::text, 'rpc:set_member_pin', null, null, 'PIN changed');
 end $$;
 
+-- Service-role only: resolve a shop code to its name + active PIN members (for the employee login screen).
+create or replace function lookup_shop_by_code(p_code text)
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+declare sh shops;
+begin
+  if coalesce(nullif(current_setting('request.jwt.claim.role', true), ''), nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role') is distinct from 'service_role' then
+    raise exception 'service role required' using errcode = '42501';
+  end if;
+  select * into sh from shops where upper(settings->>'shop_code') = upper(trim(p_code)) limit 1;
+  if sh.id is null then return null; end if;
+  return jsonb_build_object('shop_id', sh.id, 'shop_name', sh.name,
+    'members', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'display_name', display_name) order by display_name), '[]'::jsonb)
+                from shop_members where shop_id = sh.id and is_active and pin_hash is not null));
+end $$;
+
 -- Service-role only: verify PIN. Returns member row on success, raises on failure. Used by edge function.
 create or replace function verify_member_pin(p_shop_id uuid, p_member_id uuid, p_pin text)
 returns shop_members language plpgsql security definer set search_path = public as $$
 declare m shop_members;
 begin
-  if current_setting('request.jwt.claim.role', true) is distinct from 'service_role' then
+  if coalesce(nullif(current_setting('request.jwt.claim.role', true), ''), nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role') is distinct from 'service_role' then
     raise exception 'service role required' using errcode = '42501';
   end if;
   select * into m from shop_members where id = p_member_id and shop_id = p_shop_id and is_active;
@@ -746,3 +763,4 @@ end $$;
 
 grant execute on all functions in schema public to authenticated;
 revoke execute on function verify_member_pin(uuid, uuid, text) from authenticated, anon;
+revoke execute on function lookup_shop_by_code(text) from authenticated, anon;
