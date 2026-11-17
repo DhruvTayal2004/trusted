@@ -12,6 +12,7 @@ import { receivePurchase, type PurchaseLineInput } from '@/lib/repos/stock';
 import { getSupplier, listSuppliers } from '@/lib/repos/suppliers';
 import type { Product, Supplier } from '@/lib/repos/types';
 import { uploadImage } from '@/lib/storage';
+import { rememberPendingUpload } from '@/lib/uploads';
 import { syncNow } from '@/lib/sync/engine';
 import { Button, Card, Chip, ErrorBanner, Field, Money, MoneyField, Row, Screen, T } from '@/ui';
 import { colors, spacing } from '@/ui/theme';
@@ -75,9 +76,11 @@ export default function ReceiveStockScreen() {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(invoiceDate)) return setError('Date must be YYYY-MM-DD');
     setBusy(true);
     try {
-      const imagePath = photo ? await uploadImage('invoices', `${shop!.id}/${Date.now()}.jpg`, photo).catch(() => null) : null;
+      const storagePath = photo ? `${shop!.id}/${Date.now()}.jpg` : null;
+      const imagePath = photo && storagePath ? await uploadImage('invoices', storagePath, photo).catch(() => null) : null;
       const shift = await currentShift(member.id);
-      await receivePurchase({ shopId: shop!.id, memberId: member.id, supplierId: supplier?.id ?? null, invoiceNumber: invoiceNo || undefined, invoiceDate, invoiceImagePath: imagePath, lines, paidPaise, paidMethod: paidPaise > 0 ? paidMethod : null, shiftId: shift?.id ?? null });
+      const purchase = await receivePurchase({ shopId: shop!.id, memberId: member.id, supplierId: supplier?.id ?? null, invoiceNumber: invoiceNo || undefined, invoiceDate, invoiceImagePath: imagePath ?? (photo ? 'upload_pending' : null), lines, paidPaise, paidMethod: paidPaise > 0 ? paidMethod : null, shiftId: shift?.id ?? null });
+      if (photo && storagePath && !imagePath) await rememberPendingUpload({ bucket: 'invoices', path: storagePath, localUri: photo, table: 'purchases', recordId: purchase.id });
       void syncNow();
       Alert.alert('Stock received', `${lines.length} item(s) added to stock.${supplier ? ` ${formatPaise(total - paidPaise)} added to ${supplier.name}'s balance.` : ''}`);
       router.back();

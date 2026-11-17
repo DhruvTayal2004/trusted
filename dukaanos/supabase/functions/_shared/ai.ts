@@ -8,7 +8,7 @@
  * Every method returns JSON validated against a schema the caller supplies; the model is never
  * trusted to produce numbers that end up in ledgers without human review (see ai-extract).
  */
-import Anthropic from 'npm:@anthropic-ai/sdk@^0.80.0';
+import Anthropic from 'npm:@anthropic-ai/sdk@1.8.0';
 import { env } from './supabase.ts';
 
 export interface JsonSchema { type: 'object'; properties: Record<string, unknown>; required?: string[]; additionalProperties?: false; [k: string]: unknown }

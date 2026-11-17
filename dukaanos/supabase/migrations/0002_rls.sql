@@ -4,32 +4,32 @@
 -- Financial events are inserted through RPCs (0003_rpc.sql) which validate permissions again.
 
 create or replace function current_member() returns shop_members
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, extensions as $$
   select * from shop_members where user_id = auth.uid() and is_active limit 1
 $$;
 
 create or replace function current_member_id() returns uuid
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, extensions as $$
   select id from shop_members where user_id = auth.uid() and is_active limit 1
 $$;
 
 create or replace function current_shop_id() returns uuid
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, extensions as $$
   select shop_id from shop_members where user_id = auth.uid() and is_active limit 1
 $$;
 
 create or replace function current_role_name() returns member_role
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, extensions as $$
   select role from shop_members where user_id = auth.uid() and is_active limit 1
 $$;
 
 create or replace function is_manager() returns boolean
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, extensions as $$
   select coalesce((select role in ('owner','admin') from shop_members where user_id = auth.uid() and is_active limit 1), false)
 $$;
 
 create or replace function has_permission(p_key text) returns boolean
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, extensions as $$
   select coalesce(
     (select role in ('owner','admin') or coalesce((permissions ->> p_key)::boolean, false)
        from shop_members where user_id = auth.uid() and is_active limit 1),

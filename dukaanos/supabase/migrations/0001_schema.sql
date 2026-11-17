@@ -5,7 +5,7 @@
 --   * Financial tables are APPEND-ONLY events. Corrections are new rows that reference the original.
 --   * Client generates UUID primary keys so offline writes are idempotent on sync.
 
-create extension if not exists "pgcrypto";
+create extension if not exists "pgcrypto" with schema extensions;
 create extension if not exists "pg_trgm";
 
 -- ---------------------------------------------------------------------------

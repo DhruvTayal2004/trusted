@@ -5,6 +5,7 @@ import { createStore } from '@/lib/store';
 import { isPermanentRpcError, rpcErrorMessage, supabase } from '@/lib/supabase';
 import { listOutbox, markRejected, markRetry, markSent, outboxCounts } from './outbox';
 import { applyPulledChanges } from './pull';
+import { flushPendingUploads } from '@/lib/uploads';
 
 export interface SyncState {
   online: boolean;
@@ -84,6 +85,7 @@ export async function syncNow(): Promise<void> {
       const online = Boolean(net.isConnected && net.isInternetReachable !== false);
       syncStore.set({ online });
       if (!online) return;
+      await flushPendingUploads().catch(() => undefined); // offline photos first, so their set_attachment_path ops join this push
       const { stoppedOnNetwork } = await pushOutbox();
       await refreshCounts();
       if (stoppedOnNetwork) {

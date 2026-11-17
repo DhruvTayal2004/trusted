@@ -54,7 +54,8 @@
     "lint": "expo lint",
     "db:test": "bash scripts/db-test.sh",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "e2e:web": "node e2e/web-smoke.mjs"
   },
   "private": true
 }

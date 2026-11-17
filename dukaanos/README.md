@@ -145,5 +145,5 @@ device testing with airplane mode is still to be done on real hardware (see "Not
 - Voice recording upload uses React Native's `FormData` file shape; verify against the deployed `ai-voice` function.
 - Pull sync overwrites local product/customer caches with server values; a device with unsynced sales will briefly show
   server stock until its outbox pushes (push runs before pull, so this only shows if push fails mid-way).
-- Expense/invoice photos taken offline are saved with path `upload_pending` and are not retried automatically yet.
+- Expense/invoice photos taken offline are uploaded on the next sync (`src/lib/uploads.ts`); verify on device.
 - No automated UI tests.

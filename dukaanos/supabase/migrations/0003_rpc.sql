@@ -6,7 +6,7 @@
 -- Helpers
 -- ---------------------------------------------------------------------------
 create or replace function _require_member() returns shop_members
-language plpgsql stable security definer set search_path = public as $$
+language plpgsql stable security definer set search_path = public, extensions as $$
 declare m shop_members;
 begin
   select * into m from shop_members where user_id = auth.uid() and is_active limit 1;
@@ -17,7 +17,7 @@ begin
 end $$;
 
 create or replace function _require_manager() returns shop_members
-language plpgsql stable security definer set search_path = public as $$
+language plpgsql stable security definer set search_path = public, extensions as $$
 declare m shop_members;
 begin
   m := _require_member();
@@ -33,17 +33,17 @@ language sql immutable as $$
 $$;
 
 create or replace function _shop_today(p_shop_id uuid) returns date
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, extensions as $$
   select (now() at time zone coalesce((select timezone from shops where id = p_shop_id), 'Asia/Kolkata'))::date
 $$;
 
 create or replace function _open_shift_id(p_member_id uuid) returns uuid
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, extensions as $$
   select id from shifts where member_id = p_member_id and status = 'open' limit 1
 $$;
 
 create or replace function _audit(p_shop uuid, p_member uuid, p_table text, p_record text, p_action text, p_old jsonb, p_new jsonb, p_reason text)
-returns void language sql security definer set search_path = public as $$
+returns void language sql security definer set search_path = public, extensions as $$
   insert into audit_log(shop_id, actor_user_id, actor_member_id, table_name, record_id, action, old_value, new_value, reason)
   values (p_shop, auth.uid(), p_member, p_table, p_record, p_action, p_old, p_new, p_reason)
 $$;
@@ -52,7 +52,7 @@ $$;
 -- Shop creation & membership
 -- ---------------------------------------------------------------------------
 create or replace function create_shop(p_name text, p_owner_name text, p_phone text default null)
-returns shops language plpgsql security definer set search_path = public as $$
+returns shops language plpgsql security definer set search_path = public, extensions as $$
 declare s shops;
 begin
   if auth.uid() is null then raise exception 'Not authenticated' using errcode = '42501'; end if;
@@ -76,7 +76,7 @@ end $$;
 
 -- Called by the `pin-login` edge function (service role) and by managers to set an employee PIN.
 create or replace function set_member_pin(p_member_id uuid, p_pin text)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; target shop_members;
 begin
   m := _require_manager();
@@ -90,7 +90,7 @@ end $$;
 
 -- Service-role only: resolve a shop code to its name + active PIN members (for the employee login screen).
 create or replace function lookup_shop_by_code(p_code text)
-returns jsonb language plpgsql stable security definer set search_path = public as $$
+returns jsonb language plpgsql stable security definer set search_path = public, extensions as $$
 declare sh shops;
 begin
   if coalesce(nullif(current_setting('request.jwt.claim.role', true), ''), nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role') is distinct from 'service_role' then
@@ -105,7 +105,7 @@ end $$;
 
 -- Service-role only: verify PIN. Returns member row on success, raises on failure. Used by edge function.
 create or replace function verify_member_pin(p_shop_id uuid, p_member_id uuid, p_pin text)
-returns shop_members language plpgsql security definer set search_path = public as $$
+returns shop_members language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members;
 begin
   if coalesce(nullif(current_setting('request.jwt.claim.role', true), ''), nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role') is distinct from 'service_role' then
@@ -130,7 +130,7 @@ end $$;
 -- Shifts
 -- ---------------------------------------------------------------------------
 create or replace function open_shift(p_id uuid, p_opening_cash_paise bigint, p_client_created_at timestamptz default now())
-returns shifts language plpgsql security definer set search_path = public as $$
+returns shifts language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; s shifts;
 begin
   m := _require_member();
@@ -151,7 +151,7 @@ returns table (
   cash_expenses_paise bigint, cash_paid_out_paise bigint, expected_cash_paise bigint,
   upi_sales_paise bigint, upi_received_paise bigint, upi_verified_paise bigint, credit_sales_paise bigint,
   sales_count bigint, total_sales_paise bigint
-) language sql stable security definer set search_path = public as $$
+) language sql stable security definer set search_path = public, extensions as $$
   with s as (select * from shifts where id = p_shift_id and shop_id = current_shop_id()),
   p as (select * from payments where shift_id = p_shift_id and status <> 'failed'),
   agg as (
@@ -176,7 +176,7 @@ returns table (
 $$;
 
 create or replace function close_shift(p_shift_id uuid, p_counted_cash_paise bigint, p_notes text default null, p_handover_to uuid default null)
-returns shifts language plpgsql security definer set search_path = public as $$
+returns shifts language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; s shifts; c record;
 begin
   m := _require_member();
@@ -219,7 +219,7 @@ end $$;
 --            items: [{id, product_id?, description, unit, qty, unit_price_paise, line_total_paise}],
 --            payments: [{id, method, amount_paise, upi_reference?, status?}] }
 create or replace function post_sale(p jsonb)
-returns sales language plpgsql security definer set search_path = public as $$
+returns sales language plpgsql security definer set search_path = public, extensions as $$
 declare
   m shop_members; s sales; it jsonb; pay jsonb; prod products;
   v_id uuid := (p->>'id')::uuid;
@@ -300,7 +300,7 @@ end $$;
 
 -- Mark a UPI payment verified/failed (owner/admin, or the employee who recorded it within their open shift)
 create or replace function set_upi_payment_status(p_payment_id uuid, p_status payment_status, p_reference text default null)
-returns payments language plpgsql security definer set search_path = public as $$
+returns payments language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; pm payments;
 begin
   m := _require_member();
@@ -314,7 +314,7 @@ end $$;
 
 -- Refund (reversal event). Requires can_refund or manager.
 create or replace function post_refund(p jsonb)
-returns refunds language plpgsql security definer set search_path = public as $$
+returns refunds language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; r refunds; s sales; v_id uuid := (p->>'id')::uuid; v_amount bigint := (p->>'amount_paise')::bigint; already bigint; it record;
 begin
   m := _require_member();
@@ -347,7 +347,7 @@ end $$;
 -- ---------------------------------------------------------------------------
 -- Record money received from a customer against their balance.
 create or replace function post_khata_payment(p jsonb)
-returns payments language plpgsql security definer set search_path = public as $$
+returns payments language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; pm payments; v_id uuid := (p->>'id')::uuid; v_customer uuid := (p->>'customer_id')::uuid; v_amount bigint := (p->>'amount_paise')::bigint; v_shift uuid; v_at timestamptz;
 begin
   m := _require_member();
@@ -372,7 +372,7 @@ end $$;
 
 -- Manual khata entry: opening balance (manager) or adjustment with reason (manager), or an "udhaar" without a sale (employee)
 create or replace function post_khata_entry(p jsonb)
-returns customer_ledger_entries language plpgsql security definer set search_path = public as $$
+returns customer_ledger_entries language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; e customer_ledger_entries; v_id uuid := (p->>'id')::uuid; v_type ledger_entry_type := (p->>'entry_type')::ledger_entry_type;
 begin
   m := _require_member();
@@ -392,7 +392,7 @@ end $$;
 -- Expenses
 -- ---------------------------------------------------------------------------
 create or replace function post_expense(p jsonb)
-returns expenses language plpgsql security definer set search_path = public as $$
+returns expenses language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; e expenses; cat expense_categories; v_id uuid := (p->>'id')::uuid; v_status expense_status;
 begin
   m := _require_member();
@@ -411,7 +411,7 @@ begin
 end $$;
 
 create or replace function decide_expense(p_expense_id uuid, p_approve boolean, p_note text default null)
-returns expenses language plpgsql security definer set search_path = public as $$
+returns expenses language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; e expenses;
 begin
   m := _require_manager();
@@ -429,7 +429,7 @@ end $$;
 --            items:[{id, product_id?, description, unit, qty, unit_cost_paise, line_total_paise, update_purchase_price?:bool}],
 --            paid_paise?, paid_method? }
 create or replace function receive_purchase(p jsonb)
-returns purchases language plpgsql security definer set search_path = public as $$
+returns purchases language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; pu purchases; it jsonb; v_id uuid := (p->>'id')::uuid; v_total bigint := 0; v_paid bigint := coalesce((p->>'paid_paise')::bigint, 0); v_supplier uuid := nullif(p->>'supplier_id','')::uuid; v_at timestamptz;
 begin
   m := _require_member();
@@ -469,7 +469,7 @@ begin
 end $$;
 
 create or replace function post_supplier_payment(p jsonb)
-returns supplier_ledger_entries language plpgsql security definer set search_path = public as $$
+returns supplier_ledger_entries language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; e supplier_ledger_entries; v_id uuid := (p->>'id')::uuid; v_amount bigint := (p->>'amount_paise')::bigint;
 begin
   m := _require_member();
@@ -485,7 +485,7 @@ begin
 end $$;
 
 create or replace function post_supplier_entry(p jsonb)
-returns supplier_ledger_entries language plpgsql security definer set search_path = public as $$
+returns supplier_ledger_entries language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; e supplier_ledger_entries; v_id uuid := (p->>'id')::uuid;
 begin
   m := _require_manager();
@@ -502,7 +502,7 @@ end $$;
 -- Inventory adjustments & counts
 -- ---------------------------------------------------------------------------
 create or replace function post_stock_adjustment(p jsonb)
-returns stock_movements language plpgsql security definer set search_path = public as $$
+returns stock_movements language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; mv stock_movements; v_id uuid := (p->>'id')::uuid; v_type stock_movement_type := (p->>'movement_type')::stock_movement_type;
 begin
   m := _require_member();
@@ -522,7 +522,7 @@ end $$;
 -- Finalise a physical count: creates one count_adjustment movement per differing item.
 -- payload: { id, note?, items:[{id, product_id, counted_qty}] }
 create or replace function finalise_stock_count(p jsonb)
-returns stock_counts language plpgsql security definer set search_path = public as $$
+returns stock_counts language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; sc stock_counts; it jsonb; v_id uuid := (p->>'id')::uuid; v_sys numeric; v_counted numeric;
 begin
   m := _require_member();
@@ -554,7 +554,7 @@ end $$;
 -- Imports APPROVED notebook_entries of a scan batch into ledgers / expenses. Each entry imported once.
 create or replace function import_notebook_entries(p_entry_ids uuid[])
 returns table (entry_id uuid, imported_table text, imported_id uuid, error text)
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; e notebook_entries; sc notebook_scans; v_new uuid; v_amt bigint; v_dir text;
 begin
   m := _require_manager();
@@ -610,7 +610,7 @@ end $$;
 -- Reporting (deterministic numbers for dashboard and AI assistant)
 -- ---------------------------------------------------------------------------
 create or replace function daily_summary(p_date date default null)
-returns jsonb language plpgsql stable security definer set search_path = public as $$
+returns jsonb language plpgsql stable security definer set search_path = public, extensions as $$
 declare m shop_members; tz text; d date; d_start timestamptz; d_end timestamptz; r jsonb;
 begin
   m := _require_member();
@@ -648,7 +648,7 @@ begin
 end $$;
 
 create or replace function sales_summary_range(p_from date, p_to date)
-returns jsonb language plpgsql stable security definer set search_path = public as $$
+returns jsonb language plpgsql stable security definer set search_path = public, extensions as $$
 declare m shop_members; tz text; s timestamptz; e timestamptz;
 begin
   m := _require_member();
@@ -674,7 +674,7 @@ end $$;
 
 -- Unusual patterns: described neutrally. Never labelled as theft.
 create or replace function anomaly_report(p_days int default 7)
-returns jsonb language plpgsql stable security definer set search_path = public as $$
+returns jsonb language plpgsql stable security definer set search_path = public, extensions as $$
 declare m shop_members;
 begin
   m := _require_manager();
@@ -695,7 +695,7 @@ begin
 end $$;
 
 create or replace function customer_statement(p_customer_id uuid, p_limit int default 50)
-returns jsonb language sql stable security definer set search_path = public as $$
+returns jsonb language sql stable security definer set search_path = public, extensions as $$
   select jsonb_build_object(
     'customer', (select jsonb_build_object('id', id, 'name', name, 'phone', phone, 'balance_paise', balance_paise) from customers where id = p_customer_id and shop_id = current_shop_id()),
     'entries', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'type', entry_type, 'amount_paise', amount_paise, 'date', entry_date, 'note', note, 'sale_id', sale_id) order by entry_date desc, created_at desc), '[]'::jsonb)
@@ -704,7 +704,7 @@ returns jsonb language sql stable security definer set search_path = public as $
 $$;
 
 create or replace function product_stock_report()
-returns jsonb language sql stable security definer set search_path = public as $$
+returns jsonb language sql stable security definer set search_path = public, extensions as $$
   select jsonb_build_object(
     'low_stock', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'name', name, 'stock_qty', stock_qty, 'unit', unit, 'min_stock_qty', min_stock_qty) order by stock_qty), '[]'::jsonb)
                   from products where shop_id = current_shop_id() and is_active and min_stock_qty > 0 and stock_qty <= min_stock_qty),
@@ -716,7 +716,7 @@ $$;
 
 -- Incremental pull for sync: everything in the shop changed after a cursor, per table.
 create or replace function pull_changes(p_since timestamptz, p_limit int default 500)
-returns jsonb language plpgsql stable security definer set search_path = public as $$
+returns jsonb language plpgsql stable security definer set search_path = public, extensions as $$
 declare m shop_members; r jsonb;
 begin
   m := _require_member();
@@ -741,7 +741,7 @@ end $$;
 
 -- Low-stock + payment reminder queueing (call from a scheduled job or manually from owner dashboard)
 create or replace function queue_daily_notifications()
-returns int language plpgsql security definer set search_path = public as $$
+returns int language plpgsql security definer set search_path = public, extensions as $$
 declare m shop_members; sh shops; n int := 0;
 begin
   m := _require_manager();

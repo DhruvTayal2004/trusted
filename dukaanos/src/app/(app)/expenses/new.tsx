@@ -7,6 +7,7 @@ import { useMember, useSession } from '@/features/session';
 import { createExpense, listExpenseCategories } from '@/lib/repos/expenses';
 import { currentShift } from '@/lib/repos/shifts';
 import { uploadImage } from '@/lib/storage';
+import { rememberPendingUpload } from '@/lib/uploads';
 import { syncNow } from '@/lib/sync/engine';
 import type { ExpenseCategory } from '@/lib/repos/types';
 import { Button, Card, Chip, ErrorBanner, Field, MoneyField, Row, Screen, T } from '@/ui';
@@ -41,12 +42,14 @@ export default function NewExpenseScreen() {
     setError(null);
     try {
       let receiptPath: string | null = null;
-      if (photo) {
-        // Upload is best-effort: offline → expense still saved, photo path stays null and is noted.
-        receiptPath = await uploadImage('receipts', `${shop!.id}/${Date.now()}.jpg`, photo).catch(() => null);
+      const storagePath = photo ? `${shop!.id}/${Date.now()}.jpg` : null;
+      if (photo && storagePath) {
+        // Best-effort now; if offline the expense is still saved and the photo is uploaded on the next sync.
+        receiptPath = await uploadImage('receipts', storagePath, photo).catch(() => null);
       }
       const shift = await currentShift(member.id);
       const e = await createExpense({ shopId: shop!.id, memberId: member.id, shiftId: shift?.id ?? null, role: member.role, category: cat, categoryName: cat ? undefined : note.trim(), amountPaise: paise, paidMethod: method, note: note || undefined, receiptPath: receiptPath ?? (photo ? 'upload_pending' : null) });
+      if (photo && storagePath && !receiptPath) await rememberPendingUpload({ bucket: 'receipts', path: storagePath, localUri: photo, table: 'expenses', recordId: e.id });
       void syncNow();
       router.back();
       if (e.status === 'pending_approval') setTimeout(() => alert('Expense saved — waiting for owner approval'), 100);

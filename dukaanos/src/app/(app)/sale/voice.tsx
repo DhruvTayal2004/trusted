@@ -1,4 +1,3 @@
-import { File } from 'expo-file-system';
 import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -70,9 +69,8 @@ export default function VoiceOrderScreen() {
       if (!uri) return setError('No recording captured');
       if (!online) return setError('Recording saved but transcription needs internet. Type the order instead.');
       const form = new FormData();
-      const f = new File(uri);
+      // React Native FormData accepts {uri,name,type} for files (not a web Blob).
       form.append('audio', { uri, name: 'order.m4a', type: 'audio/m4a' } as unknown as Blob);
-      void f;
       await interpret(form);
       return;
     }

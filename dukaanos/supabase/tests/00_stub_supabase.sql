@@ -3,6 +3,7 @@
 create schema if not exists auth;
 create schema if not exists storage;
 create schema if not exists extensions;
+grant usage on schema extensions to public;
 create table if not exists auth.users (id uuid primary key, email text);
 create or replace function auth.uid() returns uuid language sql stable as $$
   select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
