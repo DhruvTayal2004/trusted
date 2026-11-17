@@ -74,12 +74,26 @@ npx expo start            # press i (iOS simulator), a (Android), or scan QR wit
 First run: sign up as owner → **Create your shop** → More → Employees → add employee → set PIN → Settings shows the **shop code**.
 On the employee's phone: **Employee login with PIN** → shop code → name → PIN.
 
+## 2b. Full local stack (no cloud project needed)
+
+```bash
+supabase start -x realtime,vector,logflare,studio,imgproxy,edge-runtime,inbucket,mailpit,pgadmin-schema-diff,migra,postgres-meta,supavisor
+# prints API_URL (http://127.0.0.1:54321) and ANON_KEY → put them in .env
+# Edge functions without the edge-runtime image: run one with Deno (needs .env.functions, see .env.example keys)
+deno run --allow-net --allow-env --allow-read --config supabase/functions/deno.json --env-file=.env.functions supabase/functions/pin-login/index.ts
+# then set EXPO_PUBLIC_FUNCTIONS_URL=http://127.0.0.1:8000 in .env
+npx expo start --web            # metro.config.js adds the COOP/COEP headers expo-sqlite needs on web
+npm run e2e:web                 # Playwright: sign-up → shop → product → sale → dashboard → stock
+E2E_FULL=1 npm run e2e:web      # + employee PIN login → shift → sale → close shift short by ₹10
+```
+
 ## 3. Tests
 
 ```bash
 npm test            # vitest: money/paise arithmetic, units + Hinglish parsing, cart totals & payment splits,
                     # cash reconciliation, permissions, voice parser, notebook dedupe, sync error classification
 npm run typecheck   # tsc --noEmit
+deno check supabase/functions/*/index.ts   # edge functions (uses supabase/functions/deno.json)
 npm run db:test     # applies migrations to a throwaway Postgres and runs supabase/tests/01_flows.sql:
                     # shop→employee→products→sale→stock→khata→expense→purchase→shift close→expected cash,
                     # idempotent replay, permission denials, immutability, RLS isolation, notebook import
