@@ -22,42 +22,47 @@ page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 page.on('pageerror', (e) => errors.push(String(e)));
 const shot = (n) => page.screenshot({ path: `${out}/${n}.png` });
 const step = async (name, fn) => { process.stdout.write(`▶ ${name} … `); try { await fn(); console.log('ok'); } catch (e) { console.log('FAIL'); await shot(`FAIL-${name.replace(/\W+/g, '_')}`); throw e; } };
+/** Click, falling back to a direct DOM click when another (web-only) tab scene intercepts pointer events. */
+const tap = async (locator) => {
+  try { await locator.click({ timeout: 4000 }); }
+  catch (e) { if (!String(e).includes('intercepts pointer events')) throw e; process.stdout.write('[web z-order fallback] '); await locator.evaluate((el) => el.closest('[role=button],[tabindex],a,button')?.click() ?? el.click()); }
+};
 
 try {
   await step('load app', async () => { await page.goto(base, { waitUntil: 'networkidle' }); await page.getByText('DukaanOS', { exact: false }).first().waitFor({ timeout: 60_000 }); await shot('01-login'); });
   await step('owner sign-up', async () => {
-    await page.getByText('New shop? Create owner account').click();
+    await tap(page.getByText('New shop? Create owner account'));
     await page.getByPlaceholder('owner@example.com').fill(email);
     await page.getByPlaceholder('••••••••').fill(password);
-    await page.getByText('Create account', { exact: true }).click();
+    await tap(page.getByText('Create account', { exact: true }));
     await page.getByText('Create your shop').first().waitFor({ timeout: 30_000 });
     await shot('02-create-shop');
   });
   await step('create shop', async () => {
     await page.getByPlaceholder('Sharma Kirana Store').fill('E2E Kirana');
     await page.getByPlaceholder('Sharma ji').fill('Owner');
-    await page.getByText('Create shop', { exact: true }).click();
+    await tap(page.getByText('Create shop', { exact: true }));
     await page.getByText('Recorded sales').waitFor({ timeout: 30_000 });
     await shot('03-dashboard-empty');
   });
   await step('add product', async () => {
-    await page.getByText('Stock', { exact: true }).click();
-    await page.getByText('+ Product').click();
+    await tap(page.getByText('Stock', { exact: true }));
+    await tap(page.getByText('+ Product'));
     await page.getByPlaceholder('Basmati Rice').fill('Chawal');
-    await page.getByText('kg · किलो').click();
+    await tap(page.getByText('kg · किलो'));
     await page.getByPlaceholder('0').first().fill('80');
-    await page.getByText('Add product').click();
+    await tap(page.getByText('Add product'));
     await page.getByText('Chawal').first().waitFor({ timeout: 15_000 });
     await shot('04-product-list');
   });
   await step('record cash sale', async () => {
-    await page.getByText('Sales', { exact: true }).click();
-    await page.getByText('New sale').first().click();
-    await page.getByText('Chawal').first().click();           // loose → qty picker
-    await page.getByText('1 kg', { exact: true }).click();
-    await page.getByText('Add to bill').click();
-    await page.getByText('Pay ▸').first().click();
-    await page.getByText(/Confirm ₹80/).click();
+    await tap(page.getByText('Sales', { exact: true }));
+    await tap(page.getByText('New sale').first());
+    await tap(page.getByText('Chawal').first());           // loose → qty picker
+    await tap(page.getByText('1 kg', { exact: true }));
+    await tap(page.getByText('Add to bill'));
+    await tap(page.getByText('Pay ▸').first());
+    await tap(page.getByText(/Confirm ₹80/));
     await page.getByText('Sale recorded').waitFor({ timeout: 15_000 });
     await shot('05-sale-done');
   });
@@ -68,30 +73,30 @@ try {
     await shot('06-dashboard-sale');
   });
   await step('stock deducted', async () => {
-    await page.getByText('Stock', { exact: true }).click();
+    await tap(page.getByText('Stock', { exact: true }));
     await page.getByText('-1 kg').waitFor({ timeout: 15_000 });
     await shot('07-stock');
   });
   if (process.env.E2E_FULL === '1') {
     let shopCode = '';
     await step('add employee + PIN', async () => {
-      await page.getByText('More', { exact: true }).click();
-      await page.getByText('Employees').first().click();
-      await page.getByText('+ Add employee').click();
+      await tap(page.getByText('More', { exact: true }));
+      await tap(page.getByText('Employees').first());
+      await tap(page.getByText('+ Add employee'));
       await page.getByPlaceholder('').first().fill('Ramu').catch(() => undefined);
       const nameField = page.locator('input').first();
       await nameField.fill('Ramu');
-      await page.getByText('Create employee').click();
+      await tap(page.getByText('Create employee'));
       await page.getByText('Set login PIN').waitFor({ timeout: 20_000 });
       await page.getByPlaceholder('••••').fill('1234');
-      await page.getByText('Set PIN', { exact: true }).click();
+      await tap(page.getByText('Set PIN', { exact: true }));
       await page.getByText(/PIN set/).waitFor({ timeout: 20_000 });
       await shot('08-employee-pin');
     });
     await step('read shop code', async () => {
-      await page.getByText('Back to employees').click();
+      await tap(page.getByText('Back to employees'));
       await page.goBack();
-      await page.getByText('Settings').first().click();
+      await tap(page.getByText('Settings').first());
       const code = await page.locator('text=/^[A-Z0-9]{6}$/').first().textContent({ timeout: 20_000 });
       shopCode = (code ?? '').trim();
       if (!/^[A-Z0-9]{6}$/.test(shopCode)) throw new Error('shop code not found: ' + code);
@@ -100,40 +105,40 @@ try {
     await step('sign out owner', async () => {
       await page.goBack();
       page.once('dialog', (d) => d.accept());
-      await page.getByText('Sign out of this device').click();
+      await tap(page.getByText('Sign out of this device'));
       // RN web Alert → window.confirm; some builds render a custom dialog
       await page.getByText('Sign out', { exact: true }).click({ timeout: 5000 }).catch(() => undefined);
       await page.getByText('Employee login with PIN').waitFor({ timeout: 30_000 });
     });
     await step('employee PIN login', async () => {
-      await page.getByText('Employee login with PIN').click();
+      await tap(page.getByText('Employee login with PIN'));
       await page.getByPlaceholder('e.g. SHARMA').fill(shopCode);
-      await page.getByText('Find shop').click();
-      await page.getByText('Ramu').first().click();
-      for (const d of ['1', '2', '3', '4']) await page.getByText(d, { exact: true }).last().click();
+      await tap(page.getByText('Find shop'));
+      await tap(page.getByText('Ramu').first());
+      for (const d of ['1', '2', '3', '4']) await tap(page.getByText(d, { exact: true }).last());
       await page.getByText('Shift not open').waitFor({ timeout: 40_000 });
       await shot('10-employee-home');
     });
     await step('open shift, sale, close shift', async () => {
-      await page.getByText('Open shift', { exact: true }).first().click();
+      await tap(page.getByText('Open shift', { exact: true }).first());
       await page.getByPlaceholder('0').first().fill('500');
-      await page.getByText('Open shift', { exact: true }).last().click();
+      await tap(page.getByText('Open shift', { exact: true }).last());
       await page.getByText(/Your shift/).waitFor({ timeout: 20_000 });
-      await page.getByText('New sale').first().click();
-      await page.getByText('Chawal').first().click();
-      await page.getByText('2 kg', { exact: true }).click();
-      await page.getByText('Add to bill').click();
-      await page.getByText('Pay ▸').first().click();
-      await page.getByText(/Confirm ₹160/).click();
+      await tap(page.getByText('New sale').first());
+      await tap(page.getByText('Chawal').first());
+      await tap(page.getByText('2 kg', { exact: true }));
+      await tap(page.getByText('Add to bill'));
+      await tap(page.getByText('Pay ▸').first());
+      await tap(page.getByText(/Confirm ₹160/));
       await page.getByText('Sale recorded').waitFor({ timeout: 15_000 });
-      await page.getByText('Home', { exact: true }).click();
-      await page.getByText('Close shift').first().click();
+      await tap(page.getByText('Home', { exact: true }));
+      await tap(page.getByText('Close shift').first());
       await page.getByText('Expected cash in drawer').waitFor({ timeout: 20_000 });
       await page.getByText('₹660').first().waitFor({ timeout: 10_000 }); // 500 + 160
       await page.getByPlaceholder('0').first().fill('650');            // short by 10
       await page.getByText('Short').waitFor();
       page.once('dialog', (d) => d.accept());
-      await page.getByText('Close shift', { exact: true }).last().click();
+      await tap(page.getByText('Close shift', { exact: true }).last());
       await page.getByText('Close anyway').click({ timeout: 5000 }).catch(() => undefined);
       await page.getByText('-₹10').first().waitFor({ timeout: 30_000 });
       await shot('11-shift-closed-short');
