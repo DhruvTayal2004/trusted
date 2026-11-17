@@ -28,19 +28,4 @@ if (Platform.OS !== 'web') {
   });
 }
 
-/** Normalise Postgres/PostgREST errors to a short message the UI can show. */
-export function rpcErrorMessage(err: unknown): string {
-  if (!err) return 'Unknown error';
-  if (typeof err === 'string') return err;
-  const e = err as { message?: string; details?: string; hint?: string; code?: string };
-  return e.message || e.details || e.hint || e.code || 'Unknown error';
-}
-
-/** Permanent (do-not-retry) failures: validation and permission errors raised by RPCs/RLS. */
-export function isPermanentRpcError(err: unknown): boolean {
-  const e = err as { code?: string; message?: string };
-  const code = e?.code ?? '';
-  if (['42501', 'P0001', 'P0002', '23514', '23503', '22P02', '23505', '42883', '42P01'].includes(code)) return true;
-  const msg = (e?.message ?? '').toLowerCase();
-  return msg.includes('row-level security') || msg.includes('not permitted') || msg.includes('permission');
-}
+export { isPermanentRpcError, rpcErrorMessage } from '@/core/sync/errors';
